@@ -1,0 +1,57 @@
+{
+  "name": "work-zone-cards-data-srv",
+  "version": "1.0.0",
+  "description": "Procurement Card Enablement Project",
+  "repository": "<Add your repository here>",
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "@sap-cloud-sdk/core": "^1.54.2",
+    "@sap-cloud-sdk/util": "^2.11.0",
+    "@sap/cds": "^5",
+    "@sap/xsenv": "^3.4.0",
+    "@sap/xssec": "^3.2.14",
+    "express": "^4",
+    "moment": "^2.29.4",
+    "passport": "^0.6.0"
+  },
+  "devDependencies": {
+    "sqlite3": "^5.0.3"
+  },
+  "scripts": {
+    "start": "node --inspect node_modules/@sap/cds/bin/cds run",
+    "debug": "set TYPE=TEST&&node --inspect node_modules/@sap/cds/bin/cds run --in-memory",
+    "mta:package": "mbt build --mtar mta-work-zone-cards-data --platform cf",
+    "mta:deploy": "cf deploy mta_archives/mta-work-zone-cards-data.mtar -f -e debug.mtaext",
+    "mta:package:deploy:prod": "npm run mta:package && npm run mta:deploy && npm run infra:prod && npm run infra:restage",
+    "mta:package:deploy:test": "npm run mta:package && npm run mta:deploy && npm run infra:dev && npm run infra:restage",
+    "dev:debug": "cf ssh -N -T -L 9229:localhost:9229 work-zone-cards-data-srv",
+    "dev:enableDebug": "cf set-env work-zone-cards-data-srv NODE_ARGS --inspect",
+    "dev:enableSsh": "cf enable-ssh work-zone-cards-data-srv",
+    "infra:prod": "cf set-env work-zone-cards-data-srv TYPE PROD",
+    "infra:dev": "cf set-env work-zone-cards-data-srv TYPE TEST",
+    "infra:restage": "cf restage work-zone-cards-data-srv"
+  },
+  "cds": {
+    "auth": {
+      "passport": {
+        "strategy": "JWT"
+      }
+    },
+    "requires": {
+      "uaa": {
+        "kind": "xsuaa"
+      },
+      "db": {
+        "kind": "sql"
+      },
+      "KIT_Datalake": {
+        "kind": "odata",
+        "model": "srv\\external\\KIT_Datalake",
+        "credentials": {
+          "destination": "KIT_Datalake"
+        }
+      }
+    }
+  }
+}

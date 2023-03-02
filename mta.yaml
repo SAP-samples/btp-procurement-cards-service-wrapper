@@ -1,0 +1,86 @@
+## Generated mta.yaml based on template version 0.4.0
+## appName = work-zone-cards-data
+## language=nodejs; multiTenant=false
+## approuter=
+_schema-version: '3.1'
+ID: com.sap.pgp.work-zone-cards-data
+version: 1.0.0
+description: "SAP Work Zone for Procurement Card Enablement Project"
+parameters:
+  enable-parallel-deployments: true
+  global-xsappname: work-zone-cards-data-xsapp-${space}
+
+build-parameters:
+  before-all:
+   - builder: custom
+     commands:
+      - npm install --production
+      - npx -p @sap/cds-dk cds build --production
+
+
+modules:
+ # --------------------- SERVER MODULE ------------------------
+ - name: work-zone-cards-data-srv
+ # ------------------------------------------------------------
+   type: nodejs
+   path: gen/srv
+   properties:
+    TYPE: "PROD"
+   parameters:
+     buildpack: nodejs_buildpack
+     instances: 1
+     memory: 2G
+     disk-quota: 2G
+   provides:
+    - name: work-zone-cards-data-srv-api      # required by consumers of CAP services (e.g. approuter)
+      properties:
+        srv-url: ${default-url}
+   requires:
+     # Resources extracted from CAP configuration
+     - name: work-zone-cards-data-logs
+     - name: work-zone-cards-data-uaa
+     - name: work-zone-cards-data-dest
+
+
+resources:
+  - name: work-zone-cards-data-logs
+    type: com.sap.xs.application-logs
+
+  - name: work-zone-cards-data-uaa
+    type: com.sap.xs.uaa
+    parameters:
+      service-plan: application
+      config:
+        xsappname: ${global-xsappname}
+        tenant-mode: dedicated
+
+        scopes:
+          - name: uaa.user
+            description: UAA
+
+          - name: $XSAPPNAME.Access
+            description: Basic Scope needed to access the app services
+
+        attributes:
+          - name: login_name
+            valueType: string
+
+        role-templates:
+          - name: Token_Exchange
+            description: UAA
+            scope-references:
+              - uaa.user
+            attribute-references:
+              - login_name
+          - name: Access
+            description: Basic Role needed to access the app services
+            scope-references:
+              - uaa.user
+              - $XSAPPNAME.Access
+
+
+  - name: work-zone-cards-data-dest
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service-plan: lite
+      service: destination

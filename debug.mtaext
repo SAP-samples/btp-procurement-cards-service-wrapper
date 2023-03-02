@@ -1,0 +1,8 @@
+_schema-version: 3.1.0
+ID: com.sap.pgp.work-zone-cards-data.debug
+extends: com.sap.pgp.work-zone-cards-data
+
+modules:
+  - name: work-zone-cards-data-srv
+    properties:
+      NODE_ARGS: --inspect
