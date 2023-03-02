@@ -1,3 +1,4 @@
+[![REUSE status](https://api.reuse.software/badge/github.com/SAP-samples/btp-procurement-cards-service-wrapper)](https://api.reuse.software/info/github.com/SAP-samples/btp-procurement-cards-service-wrapper)
 
 # Welcome to BTP Service Wrapper App for Procurement Cards
 
