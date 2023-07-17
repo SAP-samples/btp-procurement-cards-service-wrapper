@@ -9,6 +9,7 @@
     "@sap-cloud-sdk/core": "^1.54.2",
     "@sap-cloud-sdk/util": "^2.11.0",
     "@sap/cds": "^5",
+    "@sap/cds-dk": "^6",
     "@sap/xsenv": "^3.4.0",
     "@sap/xssec": "^3.2.14",
     "express": "^4",
