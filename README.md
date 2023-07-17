@@ -18,7 +18,7 @@ Please see the pre-requisites and the required BTP services in the [Define Your 
 Simply run the following command to deploy the deployable file to your BTP Cloud Foundry environment.
 
 ```
-mta:package:deploy:test
+npm run mta:package:deploy:test
 ```
 
 ## Known Issues
