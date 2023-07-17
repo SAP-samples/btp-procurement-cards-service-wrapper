@@ -43,9 +43,6 @@
       "uaa": {
         "kind": "xsuaa"
       },
-      "db": {
-        "kind": "sql"
-      },
       "KIT_Datalake": {
         "kind": "odata",
         "model": "srv\\external\\KIT_Datalake",
