@@ -11,7 +11,7 @@ This code is only one part of the mission, so please follow the tutorial before 
 
 
 ## Requirements
-Please see the pre-requisites and the required BTP services in the [Define Your Dashboard for Procurement]([https://discovery-center.cloud.sap/protected/index.html#/missiondetail/4183/](https://discovery-center.cloud.sap/missiondetail/4183/4434/)) Mission in SAP Discovery Center.
+Please see the pre-requisites and the required BTP services in the [Define Your Dashboard for Procurement](https://discovery-center.cloud.sap/missiondetail/4183/4434/) Mission in SAP Discovery Center.
 
 
 ## Deploy the App
