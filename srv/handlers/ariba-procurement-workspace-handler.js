@@ -1,9 +1,10 @@
 "use strict";
 
 const cds = require("@sap/cds");
-const logger = require("../util/logger");
-const cloudSDK = require("@sap-cloud-sdk/core");
-const axios = require('axios');
+const logger = cds.log('logger');
+const con = require("@sap-cloud-sdk/connectivity");
+const httpClient = require("@sap-cloud-sdk/http-client");
+const { default: axios } = require("axios");
 
 async function doCreateProcurementWorkspace (req) {
 
@@ -28,8 +29,8 @@ async function doCreateProcurementWorkspace (req) {
 
     // 3. Get Request Config & Enrich
     let sDestination = "Ariba_Procurement-Workspace_" + oData.sRealm;
-    let oDestination = await cloudSDK.getDestination(sDestination);
-    let oRequestConfig = await cloudSDK.buildHttpRequest(oDestination);
+    let oDestination = await con.getDestination({ destinationName: sDestination });
+    let oRequestConfig = await httpClient.buildHttpRequest(oDestination);
 
 
     if (!oRequestConfig) {

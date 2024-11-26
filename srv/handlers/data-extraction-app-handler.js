@@ -1,18 +1,18 @@
 "use strict";
 
 const cds = require("@sap/cds");
-const logger = require("../util/logger");
-const cloudSDK = require("@sap-cloud-sdk/core");
+const logger = cds.log('logger');
+const con = require("@sap-cloud-sdk/connectivity");
+const httpClient = require("@sap-cloud-sdk/http-client");
 const moment = require("moment");
-const axios = require('axios');
+const { default: axios } = require("axios");
 const envtype = process.env.TYPE;
 
 
 async function doGetMyConsumedContracts(req){
     
     let sLoggedUser = req.user.attr.login_name && req.user.attr.login_name[0];
-
-    let oQueryOptions = req.getUriInfo().getQueryOptions();
+    let oQueryOptions = req._queryOptions;
     let sRealm = ( oQueryOptions && oQueryOptions.realm );
     let sParamUser = ( oQueryOptions && oQueryOptions.user );
 
@@ -23,14 +23,14 @@ async function doGetMyConsumedContracts(req){
 
 
     let sDestination = "KIT_Datalake";
-    let oDestination = await cloudSDK.getDestination(sDestination);
-    let oRequestConfig = await cloudSDK.buildHttpRequest(oDestination);
+    let oDestination = await con.getDestination({ destinationName: sDestination });
+    let oRequestConfig = await httpClient.buildHttpRequest(oDestination);
 
     //Query filter (working around axios param serializing issue)
     let top = 5;
     let filter = `Realm eq '${sRealm}' and Contact_UserId eq '${sUser}' and Status eq 'Open'`;
     //Only for DataLake select, still serialized to full Contract Object on results sent
-    let select = 'ContractId,Description,AmountPercentLeft,Duration,AmountLeft,ExpirationDate_day'; 
+    let select = 'ContractId,Description,AmountPercentLeft,Duration,AmountLeft,ExpirationDate_Day';
     let orderby= 'AmountPercentLeft asc'
 
     oRequestConfig.method = "get";
@@ -51,7 +51,7 @@ async function doGetMyContractWorkspaces(req){
     
     let sLoggedUser = req.user.attr.login_name && req.user.attr.login_name[0];
 
-    let oQueryOptions = req.getUriInfo().getQueryOptions();
+    let oQueryOptions = req._queryOptions;
     let sRealm = ( oQueryOptions && oQueryOptions.realm );
     let sParamUser = ( oQueryOptions && oQueryOptions.user );
 
@@ -61,14 +61,14 @@ async function doGetMyContractWorkspaces(req){
         req.reject(400,'Missing parameters');
 
     let sDestination = "KIT_Datalake";
-    let oDestination = await cloudSDK.getDestination(sDestination);
-    let oRequestConfig = await cloudSDK.buildHttpRequest(oDestination);
+    let oDestination = await con.getDestination({ destinationName: sDestination });
+    let oRequestConfig = await httpClient.buildHttpRequest(oDestination);
 
     //Query filter (working around axios param serializing issue)
     let top = 5;
     let filter = `Realm eq '${sRealm}' and Owner_UserId eq '${sUser}'`;
     //Only for DataLake select, still serialized to full Contract Object on results sent
-    let select = 'ContractId,Description,ContractStatus,ExpirationDate_day'; 
+    let select = 'ContractId,Description,ContractStatus,ExpirationDate_Day';
  
     let orderby= 'createdAt desc'
 
@@ -90,7 +90,7 @@ async function doGetMyExpiringContracts(req){
     
     let sLoggedUser = req.user.attr.login_name && req.user.attr.login_name[0];
 
-    let oQueryOptions = req.getUriInfo().getQueryOptions();
+    let oQueryOptions = req._queryOptions;
     let sRealm = ( oQueryOptions && oQueryOptions.realm );
     let sParamUser = ( oQueryOptions && oQueryOptions.user );
 
@@ -101,15 +101,15 @@ async function doGetMyExpiringContracts(req){
 
 
     let sDestination = "KIT_Datalake";
-    let oDestination = await cloudSDK.getDestination(sDestination);
-    let oRequestConfig = await cloudSDK.buildHttpRequest(oDestination);
+    let oDestination = await con.getDestination({ destinationName: sDestination });
+    let oRequestConfig = await httpClient.buildHttpRequest(oDestination);
 
     //Query filter (working around axios param serializing issue)
     let top = 5;
-    let filter = `Realm eq '${sRealm}' and Contact_UserId eq '${sUser}' and ExpirationDate_day lt now()`;
+    let filter = `Realm eq '${sRealm}' and Contact_UserId eq '${sUser}' and ExpirationDate_Day lt now()`;
     //Only for DataLake select, still serialized to full Contract Object on results sent
-    let select = 'ContractId,Description,MaxCommitment,OrigCurrencyCode,AmountLeft,Status,ExpirationDate_day';  
-    let orderby= 'ExpirationDate_day desc'
+    let select = 'ContractId,Description,MaxCommitment,OrigCurrencyCode,AmountLeft,Status,ExpirationDate_Day';
+    let orderby= 'ExpirationDate_Day desc'
 
     oRequestConfig.method = "get";
     oRequestConfig.url = `Contracts?$top=${top}&$filter=${filter}&$select=${select}&$orderby=${orderby}`;
@@ -129,7 +129,7 @@ async function doGetMyRequisitions(req){
     
     let sLoggedUser = req.user.attr.login_name && req.user.attr.login_name[0];
 
-    let oQueryOptions = req.getUriInfo().getQueryOptions();
+    let oQueryOptions = req._queryOptions;
     let sRealm = ( oQueryOptions && oQueryOptions.realm );
     let sParamUser = ( oQueryOptions && oQueryOptions.user );
 
@@ -140,8 +140,8 @@ async function doGetMyRequisitions(req){
 
 
     let sDestination = "KIT_Datalake";
-    let oDestination = await cloudSDK.getDestination(sDestination);
-    let oRequestConfig = await cloudSDK.buildHttpRequest(oDestination);
+    let oDestination = await con.getDestination({ destinationName: sDestination });
+    let oRequestConfig = await httpClient.buildHttpRequest(oDestination);
 
     //Query filter (working around axios param serializing issue)
     let top = 10;
@@ -174,8 +174,8 @@ async function doGetMySourcingEvents (req) {
     }
 
     let sDestination = "KIT_Datalake";
-    let oDestination = await cloudSDK.getDestination(sDestination);
-    let oRequestConfig = await cloudSDK.buildHttpRequest(oDestination);
+    let oDestination = await con.getDestination({ destinationName: sDestination });
+    let oRequestConfig = await httpClient.buildHttpRequest(oDestination);
 
     // sFilter does not include the filter for Realm and User - this would need to be added
     let sFilterOnRealm = "Realm eq '" + oData.sRealm + "'";
@@ -238,7 +238,7 @@ async function doGetMySourcingProjects(req){
 
     let sLoggedUser = req.user.attr.login_name && req.user.attr.login_name[0];
 
-    let oQueryOptions = req.getUriInfo().getQueryOptions();
+    let oQueryOptions = req._queryOptions;
     let sRealm = ( oQueryOptions && oQueryOptions.realm );
     let sParamUser = ( oQueryOptions && oQueryOptions.user );
 
@@ -249,14 +249,14 @@ async function doGetMySourcingProjects(req){
 
 
     let sDestination = "KIT_Datalake";
-    let oDestination = await cloudSDK.getDestination(sDestination);
-    let oRequestConfig = await cloudSDK.buildHttpRequest(oDestination);
+    let oDestination = await con.getDestination({ destinationName: sDestination });
+    let oRequestConfig = await httpClient.buildHttpRequest(oDestination);
 
     //Query filter (working around axios param serializing issue)
     let top = 10;
     let filter = `Realm eq '${sRealm}' and Owner_UserId eq '${sUser}'`;
     //Only for DataLake select, still serialized to full Contract Object on results sent
-    let select = 'ProjectId,EventType_EventType,OnTimeOrLate,State,PlannedStartDate_day,PlannedEndDate_day';  
+    let select = 'ProjectId,EventType_EventType,OnTimeOrLate,State,PlannedStartDate_Day,PlannedEndDate_Day';
     let orderby= 'createdAt desc'
 
     oRequestConfig.method = "get";
@@ -277,7 +277,7 @@ async function doGetMyPendingInvoices(req){
 
     let sLoggedUser = req.user.attr.login_name && req.user.attr.login_name[0];
 
-    let oQueryOptions = req.getUriInfo().getQueryOptions();
+    let oQueryOptions = req._queryOptions;
     let sRealm = ( oQueryOptions && oQueryOptions.realm );
     let sParamUser = ( oQueryOptions && oQueryOptions.user );
 
@@ -288,15 +288,15 @@ async function doGetMyPendingInvoices(req){
 
 
     let sDestination = "KIT_Datalake";
-    let oDestination = await cloudSDK.getDestination(sDestination);
-    let oRequestConfig = await cloudSDK.buildHttpRequest(oDestination);
+    let oDestination = await con.getDestination({ destinationName: sDestination });
+    let oRequestConfig = await httpClient.buildHttpRequest(oDestination);
 
     //Query filter (working around axios param serializing issue)
     let top =  ( oQueryOptions && oQueryOptions.top ) || 10;
     let filter = `Realm eq '${sRealm}' and Requester_UserId eq '${sUser}' and InvoiceStatus eq 'Reconciling'`;
     //Only for DataLake select, still serialized to full Contract Object on results sent
-    let select = 'InvoiceId,Description,InvoiceDateCreated_day,ShipFromLocation_LocationId,OrigAmountInvoiced,OrigCurrencyCode,ReconciliationStatus,InvoiceStatus';  
-    let orderby= 'InvoiceDate_day desc'
+    let select = 'InvoiceId,Description,InvoiceDateCreated_Day,ShipFromLocation_LocationId,OrigAmountInvoiced,OrigCurrencyCode,ReconciliationStatus,InvoiceStatus';
+    let orderby= 'InvoiceDate_Day desc'
 
     oRequestConfig.method = "get";
     oRequestConfig.url = `InvoiceLineItems?$top=${top}&$filter=${filter}&$select=${select}&$orderby=${orderby}`;
@@ -314,7 +314,7 @@ async function doGetMyPendingInvoices(req){
 
 async function getOffContractSpendBySupplier (req) {
 
-    let oQueryOptions = req.getUriInfo().getQueryOptions();
+    let oQueryOptions = req._queryOptions;
     let sRealm = ( oQueryOptions && oQueryOptions.realm );
     let sFilter = ( oQueryOptions && oQueryOptions.sFilter );
     let sTop = ( oQueryOptions && oQueryOptions.sTop );
@@ -324,8 +324,8 @@ async function getOffContractSpendBySupplier (req) {
 
     //leveraging API consumer service as external client
     let sDestination = "KIT_Datalake";
-    let oDestination = await cloudSDK.getDestination(sDestination);
-    let oRequestConfig = await cloudSDK.buildHttpRequest(oDestination);
+    let oDestination = await con.getDestination({ destinationName: sDestination });
+    let oRequestConfig = await httpClient.buildHttpRequest(oDestination);
 
     let filter = `Realm eq '${sRealm}' and Contract_ContractId eq ''`;
     let apply = `groupby((Supplier_SupplierId,Contract_ContractId,Realm),aggregate(Amount with sum as Count))`;
@@ -353,7 +353,7 @@ async function getOffContractSpendBySupplier (req) {
 
 async function getRequisitionApprovalTimePerApprover (req) {
 
-    let oQueryOptions = req.getUriInfo().getQueryOptions();
+    let oQueryOptions = req._queryOptions;
     let sRealm = ( oQueryOptions && oQueryOptions.realm );
     let sFilter = ( oQueryOptions && oQueryOptions.sFilter );
     let sTop = ( oQueryOptions && oQueryOptions.sTop );
@@ -363,8 +363,8 @@ async function getRequisitionApprovalTimePerApprover (req) {
 
     //leveraging API consumer service as external client
     let sDestination = "KIT_Datalake";
-    let oDestination = await cloudSDK.getDestination(sDestination);
-    let oRequestConfig = await cloudSDK.buildHttpRequest(oDestination);
+    let oDestination = await con.getDestination({ destinationName: sDestination });
+    let oRequestConfig = await httpClient.buildHttpRequest(oDestination);
 
     let filter = `Realm eq '${sRealm}' and ApprovableType eq 'ariba.purchasing.core.Requisition' and ApprovalState eq 'Approved'`;
     let apply = `groupby((Approver,Realm,ApprovableType,ApprovalState),aggregate(ApprovalTime with average as duration))`;
@@ -394,7 +394,7 @@ async function getRequisitionApprovalTimePerApprover (req) {
 
 async function getSuppliersInRegistrationProcess (req) {
 
-    let oQueryOptions = req.getUriInfo().getQueryOptions();
+    let oQueryOptions = req._queryOptions;
     let sRealm = ( oQueryOptions && oQueryOptions.realm );
     let sFilter = ( oQueryOptions && oQueryOptions.sFilter );
     let sTop = ( oQueryOptions && oQueryOptions.sTop );
@@ -404,8 +404,8 @@ async function getSuppliersInRegistrationProcess (req) {
 
     //leveraging API consumer service as external client
     let sDestination = "KIT_Datalake";
-    let oDestination = await cloudSDK.getDestination(sDestination);
-    let oRequestConfig = await cloudSDK.buildHttpRequest(oDestination);
+    let oDestination = await con.getDestination({ destinationName: sDestination });
+    let oRequestConfig = await httpClient.buildHttpRequest(oDestination);
 
     let filter = `Realm eq '${sRealm}'`;
     let apply = `groupby((Realm,RegistrationStatus),aggregate($count as amount))`;
@@ -435,7 +435,7 @@ async function getTopSuppliersByAwardedAmountInSourcingEvents (req) {
 
     let sLoggedUser = req.user.attr.login_name && req.user.attr.login_name[0];
 
-    let oQueryOptions = req.getUriInfo().getQueryOptions();
+    let oQueryOptions = req._queryOptions;
     let sRealm = ( oQueryOptions && oQueryOptions.realm );
     let sParamUser = ( oQueryOptions && oQueryOptions.user );
 //    let bFilterOnUser = ( oQueryOptions && oQueryOptions.bFilterOnUser );
@@ -449,8 +449,8 @@ async function getTopSuppliersByAwardedAmountInSourcingEvents (req) {
 
     //leveraging API consumer service as external client
     let sDestination = "KIT_Datalake";
-    let oDestination = await cloudSDK.getDestination(sDestination);
-    let oRequestConfig = await cloudSDK.buildHttpRequest(oDestination);
+    let oDestination = await con.getDestination({ destinationName: sDestination });
+    let oRequestConfig = await httpClient.buildHttpRequest(oDestination);
 
     let filter = `Realm eq '${sRealm}' and AwardedFlag eq true`;
     let apply = `groupby((SupplierId,Realm,AwardedFlag,SupplierName),aggregate(AwardedAmount with sum as amount))`;
@@ -481,7 +481,7 @@ async function getTopSourcedCommodities (req) {
 
     let sLoggedUser = req.user.attr.login_name && req.user.attr.login_name[0];
 
-    let oQueryOptions = req.getUriInfo().getQueryOptions();
+    let oQueryOptions = req._queryOptions;
     let sRealm = ( oQueryOptions && oQueryOptions.realm );
     let sParamUser = ( oQueryOptions && oQueryOptions.user );
 //    let bFilterOnUser = ( oQueryOptions && oQueryOptions.bFilterOnUser );
@@ -495,8 +495,8 @@ async function getTopSourcedCommodities (req) {
 
     //leveraging API consumer service as external client
     let sDestination = "KIT_Datalake";
-    let oDestination = await cloudSDK.getDestination(sDestination);
-    let oRequestConfig = await cloudSDK.buildHttpRequest(oDestination);
+    let oDestination = await con.getDestination({ destinationName: sDestination });
+    let oRequestConfig = await httpClient.buildHttpRequest(oDestination);
 
     let filter = `SourcingProject_Realm eq '${sRealm}' and Commodity_CommodityId ne ''`;
     let apply = `groupby((Commodity_CommodityId,SourcingProject_Realm,CommodityCode_Name),aggregate($count as Count))`;
@@ -528,7 +528,7 @@ async function doGetMySpendPerQuarter (req) {
 
     let sLoggedUser = req.user.attr.login_name && req.user.attr.login_name[0];
 
-    let oQueryOptions = req.getUriInfo().getQueryOptions();
+    let oQueryOptions = req._queryOptions;
     let sRealm = ( oQueryOptions && oQueryOptions.realm );
     let sParamUser = ( oQueryOptions && oQueryOptions.user );
     let sReportingCurrency = ( oQueryOptions && oQueryOptions.reportingCurrency );
@@ -544,13 +544,13 @@ async function doGetMySpendPerQuarter (req) {
 
     //leveraging API consumer service as external client 
     let sDestination = "KIT_Datalake";
-    let oDestination = await cloudSDK.getDestination(sDestination);
-    let oRequestConfig = await cloudSDK.buildHttpRequest(oDestination);
+    let oDestination = await con.getDestination({ destinationName: sDestination });
+    let oRequestConfig = await httpClient.buildHttpRequest(oDestination);
 
     //Query filter (working around axios param serializing issue)
    
-    let filter = `Realm eq '${sRealm}' and Requester_UserId eq '${sUser}' and RequisitionDate_day gt ${startRange} and RequisitionDate_day lt ${endRange}`;
-    let select = 'Amount,LineItemCount,RequisitionDate_day';  
+    let filter = `Realm eq '${sRealm}' and Requester_UserId eq '${sUser}' and RequisitionDate_Day gt ${startRange} and RequisitionDate_Day lt ${endRange}`;
+    let select = 'Amount,LineItemCount,RequisitionDate_Day';
   
     oRequestConfig.method = "get";
     oRequestConfig.url = `RequisitionLineItems?$top=5000&$filter=${filter}&$select=${select}`;
@@ -591,7 +591,7 @@ function _calcSendPerQuarter (iQuarterOffset, aRequisitions,reportingCurrency) {
     const startRange = moment.utc(moment().quarter(moment().quarter()-iQuarterOffset).startOf('quarter')).format();
     const endRange = moment.utc(moment().quarter(moment().quarter()-iQuarterOffset).endOf('quarter')).format();
 
-    let aRequisitionsFiltered = aRequisitions.filter(i=>moment(i.RequisitionDate_day).isAfter(startRange) && moment(i.RequisitionDate_day).isBefore(endRange) );
+    let aRequisitionsFiltered = aRequisitions.filter(i=>moment(i.RequisitionDate_Day).isAfter(startRange) && moment(i.RequisitionDate_Day).isBefore(endRange) );
 
     return {
         Quarter:    moment(startRange).year()+ "Q" + moment(startRange).quarter(),
@@ -605,7 +605,7 @@ function _calcSendPerQuarter (iQuarterOffset, aRequisitions,reportingCurrency) {
 async function doGetContractVsNonContractSpend (req) {
 
     
-    let oQueryOptions = req.getUriInfo().getQueryOptions();
+    let oQueryOptions = req._queryOptions;
 
     let sRealm = ( oQueryOptions && oQueryOptions.realm ) ;
     let sTarget = ( oQueryOptions && oQueryOptions.target ) ;
@@ -621,12 +621,12 @@ async function doGetContractVsNonContractSpend (req) {
     
     //leveraging API consumer service as external client 
     let sDestination = "KIT_Datalake";
-    let oDestination = await cloudSDK.getDestination(sDestination);
-    let oRequestConfig = await cloudSDK.buildHttpRequest(oDestination);
+    let oDestination = await con.getDestination({ destinationName: sDestination });
+    let oRequestConfig = await httpClient.buildHttpRequest(oDestination);
 
     //Query filter (working around axios param serializing issue)
 
-    let filter = `Realm eq '${sRealm}' and OrderedDate_day gt ${dFromDate}`;
+    let filter = `Realm eq '${sRealm}' and OrderedDate_Day gt ${dFromDate}`;
     let select = 'Amount,Contract_ContractId';  
   
     oRequestConfig.method = "get";
@@ -674,7 +674,7 @@ async function doGetContractVsNonContractSpend (req) {
 async function doGetCatalogVsNonCatalogSpend (req) {
 
     
-    let oQueryOptions = req.getUriInfo().getQueryOptions();
+    let oQueryOptions = req._queryOptions;
 
     let sRealm = ( oQueryOptions && oQueryOptions.realm ) ;
     let sTarget = ( oQueryOptions && oQueryOptions.target ) ;
@@ -690,12 +690,12 @@ async function doGetCatalogVsNonCatalogSpend (req) {
     
     //leveraging API consumer service as external client 
     let sDestination = "KIT_Datalake";
-    let oDestination = await cloudSDK.getDestination(sDestination);
-    let oRequestConfig = await cloudSDK.buildHttpRequest(oDestination);
+    let oDestination = await con.getDestination({ destinationName: sDestination });
+    let oRequestConfig = await httpClient.buildHttpRequest(oDestination);
 
     //Query filter (working around axios param serializing issue)
 
-    let filter = `Realm eq '${sRealm}' and OrderedDate_day gt ${dFromDate}`;
+    let filter = `Realm eq '${sRealm}' and OrderedDate_Day gt ${dFromDate}`;
     let select = 'Amount,LineType';  
   
     oRequestConfig.method = "get";
@@ -743,11 +743,11 @@ async function doGetCatalogVsNonCatalogSpend (req) {
 
 async function doGetSourcingProjectsPerRegion (req) {
       
-    let oQueryOptions = req.getUriInfo().getQueryOptions();
+    let oQueryOptions = req._queryOptions;
 
     let sDestination = "KIT_Datalake";
-    let oDestination = await cloudSDK.getDestination(sDestination);
-    let oRequestConfig = await cloudSDK.buildHttpRequest(oDestination);
+    let oDestination = await con.getDestination({ destinationName: sDestination });
+    let oRequestConfig = await httpClient.buildHttpRequest(oDestination);
 
     //Query filter (working around axios param serializing issue)
 
@@ -773,7 +773,7 @@ async function doGetSourcingProjectsPerRegion (req) {
 async function doGetInvoiceExceptions (req) {
 
   
-    let oQueryOptions = req.getUriInfo().getQueryOptions();
+    let oQueryOptions = req._queryOptions;
 
     let sRealm = ( oQueryOptions && oQueryOptions.realm ) ;
     let sFromDate = ( oQueryOptions && oQueryOptions.fromDate ) ;
@@ -785,12 +785,12 @@ async function doGetInvoiceExceptions (req) {
     const dFromDate = moment.utc(sFromDate).format();
 
     let sDestination = "KIT_Datalake";
-    let oDestination = await cloudSDK.getDestination(sDestination);
-    let oRequestConfig = await cloudSDK.buildHttpRequest(oDestination);
+    let oDestination = await con.getDestination({ destinationName: sDestination });
+    let oRequestConfig = await httpClient.buildHttpRequest(oDestination);
 
     //Query filter (working around axios param serializing issue)
 
-    let filter = `Realm eq '${sRealm}' and InvoiceDate_day gt ${dFromDate}`;
+    let filter = `Realm eq '${sRealm}' and InvoiceDate_Day gt ${dFromDate}`;
     let apply= 'groupby((ExceptionTypeId),aggregate(InvoiceId with countdistinct as Total))';
 
     oRequestConfig.method = "get";
@@ -812,7 +812,7 @@ async function doGetInvoiceExceptions (req) {
 async function doGetInvoicePaymentTime (req) {
 
   
-    let oQueryOptions = req.getUriInfo().getQueryOptions();
+    let oQueryOptions = req._queryOptions;
 
     let sRealm = ( oQueryOptions && oQueryOptions.realm ) ;
 
@@ -824,13 +824,13 @@ async function doGetInvoicePaymentTime (req) {
     const endRange = moment.utc().subtract(1,'month').endOf('month').format();
 
     let sDestination = "KIT_Datalake";
-    let oDestination = await cloudSDK.getDestination(sDestination);
-    let oRequestConfig = await cloudSDK.buildHttpRequest(oDestination);
+    let oDestination = await con.getDestination({ destinationName: sDestination });
+    let oRequestConfig = await httpClient.buildHttpRequest(oDestination);
 
     //Query filter (working around axios param serializing issue)
 
-    let filter = `Realm eq '${sRealm}' and PaidDate_day gt ${startRange} and PaidDate_day lt ${endRange}`;
-    let select= 'PaidDate_day,InvoiceDate_day';
+    let filter = `Realm eq '${sRealm}' and PaidDate_Day gt ${startRange} and PaidDate_Day lt ${endRange}`;
+    let select= 'PaidDate_Day,InvoiceDate_Day';
 
     oRequestConfig.method = "get";
     oRequestConfig.url = `InvoiceLineItems?$top=5000&$filter=${filter}&$select=${select}`;
@@ -860,12 +860,12 @@ function _calcPaymentMonthlyAvg (iMonthOffset, aInvoices){
     let startRange = moment.utc().subtract(iMonthOffset,'month').startOf('month').format();
     let endRange = moment.utc().subtract(iMonthOffset,'month').endOf('month').format();
 
-    let aInvoicesFiltered = aInvoices.filter(i=>moment(i.PaidDate_day).isAfter(startRange) && moment(i.PaidDate_day).isBefore(endRange) );
+    let aInvoicesFiltered = aInvoices.filter(i=>moment(i.PaidDate_Day).isAfter(startRange) && moment(i.PaidDate_Day).isBefore(endRange) );
 
     let cumulativePaymentTime=0;
     for (const inv of aInvoicesFiltered) {
-      let pd = moment(inv.PaidDate_day);      
-      let id = moment(inv.InvoiceDate_day);
+      let pd = moment(inv.PaidDate_Day);
+      let id = moment(inv.InvoiceDate_Day);
       cumulativePaymentTime += pd.diff(id,'days');
     }
 
@@ -877,7 +877,7 @@ function _calcPaymentMonthlyAvg (iMonthOffset, aInvoices){
 async function doGetInvoiceByStatus (req) {
 
   
-    let oQueryOptions = req.getUriInfo().getQueryOptions();
+    let oQueryOptions = req._queryOptions;
 
     let sRealm = ( oQueryOptions && oQueryOptions.realm ) ;
     let sFromDate = ( oQueryOptions && oQueryOptions.fromDate ) ;
@@ -889,11 +889,11 @@ async function doGetInvoiceByStatus (req) {
     const dFromDate = moment.utc(sFromDate).format();
 
     let sDestination = "KIT_Datalake";
-    let oDestination = await cloudSDK.getDestination(sDestination);
-    let oRequestConfig = await cloudSDK.buildHttpRequest(oDestination);
+    let oDestination = await con.getDestination({ destinationName: sDestination });
+    let oRequestConfig = await httpClient.buildHttpRequest(oDestination);
 
     //Query filter (working around axios param serializing issue)
-    let filter = `Realm eq '${sRealm}' and InvoiceDate_day gt ${dFromDate}`;
+    let filter = `Realm eq '${sRealm}' and InvoiceDate_Day gt ${dFromDate}`;
     let apply= 'groupby((ReconciliationStatus),aggregate(InvoiceId with countdistinct as Total))';
 
     oRequestConfig.method = "get";
@@ -915,7 +915,7 @@ async function doGetInvoiceByStatus (req) {
 async function doGetSupplierParticipation (req) {
     
 
-    let oQueryOptions = req.getUriInfo().getQueryOptions();
+    let oQueryOptions = req._queryOptions;
     let sRealm = ( oQueryOptions && oQueryOptions.realm );   
 
     if(!sRealm )
@@ -923,8 +923,8 @@ async function doGetSupplierParticipation (req) {
 
 
     let sDestination = "KIT_Datalake";
-    let oDestination = await cloudSDK.getDestination(sDestination);
-    let oRequestConfig = await cloudSDK.buildHttpRequest(oDestination);
+    let oDestination = await con.getDestination({ destinationName: sDestination });
+    let oRequestConfig = await httpClient.buildHttpRequest(oDestination);
 
     //Query filter (working around axios param serializing issue)
 
@@ -963,11 +963,11 @@ async function doSearchContractWorkspaces (req) {
     }
 
     let sDestination = "KIT_Datalake";
-    let oDestination = await cloudSDK.getDestination(sDestination);
-    let oRequestConfig = await cloudSDK.buildHttpRequest(oDestination);
+    let oDestination = await con.getDestination({ destinationName: sDestination });
+    let oRequestConfig = await httpClient.buildHttpRequest(oDestination);
 
     //Query filter (working around axios param serializing issue)
-    oData.sSelect =  oData.sSelect || "$select=ProjectId,Description,ContractStatus,ExpirationDate_day,Owner_UserId";
+    oData.sSelect =  oData.sSelect || "$select=ProjectId,Description,ContractStatus,ExpirationDate_Day,Owner_UserId";
     oData.sTop = oData.sTop || "$top=10";
 
     // sFilter does not include the filter for Realm and User - this would need to be added
@@ -978,7 +978,7 @@ async function doSearchContractWorkspaces (req) {
     let sFilterOnRealm = "Realm eq '" + oData.sRealm + "'";
     let sFilter = oData.sFilter ? oData.sFilter + sFilterOnUser + " and " + sFilterOnRealm : "$filter=" + sFilterOnRealm + sFilterOnUser;
     oData.sExpand = oData.sExpand || "$expand=AffectedParties";
-    oData.sOrderBy = oData.sOrderBy || "$orderby=ExpirationDate_day desc";
+    oData.sOrderBy = oData.sOrderBy || "$orderby=ExpirationDate_Day desc";
 
     oRequestConfig.url = "ContractWorkspaces?" + oData.sSelect + "&" + sFilter + "&" + oData.sExpand + "&" + oData.sOrderBy + "&" + oData.sTop;
     oRequestConfig.method = "get";
@@ -1015,8 +1015,8 @@ async function doSearchSuppliers (req) {
     }
 
     let sDestination = "KIT_Datalake";
-    let oDestination = await cloudSDK.getDestination(sDestination);
-    let oRequestConfig = await cloudSDK.buildHttpRequest(oDestination);
+    let oDestination = await con.getDestination({ destinationName: sDestination });
+    let oRequestConfig = await httpClient.buildHttpRequest(oDestination);
 
     //Query filter (working around axios param serializing issue)
     oData.sSelect =  oData.sSelect || "$select=SupplierName,ERPVendorId,RegistrationStatus,QualificationStatus,IntegratedToERP,AddressPostalCode,AddressRegionCode,AddressCountryCode,AddressCity,AddressLine1,PrimaryContactEMail,PrimaryContactLastName,PrimaryContactMiddleName,PrimaryContactFirstName";
@@ -1054,8 +1054,8 @@ async function doSearchDiverseSuppliers (req) {
     }
 
     let sDestination = "KIT_Datalake";
-    let oDestination = await cloudSDK.getDestination(sDestination);
-    let oRequestConfig = await cloudSDK.buildHttpRequest(oDestination);
+    let oDestination = await con.getDestination({ destinationName: sDestination });
+    let oRequestConfig = await httpClient.buildHttpRequest(oDestination);
 
     //Query filter (working around axios param serializing issue)
     oData.sSelect =  oData.sSelect || "$select=SupplierName,Country,State,City,SupplierId,MinorityOwned,WomanOwned,VeteranOwned,DiversityDVO,DiversityGreen,DiversityGLBTOwned,DiversitySDB,VietnamVO";
@@ -1105,11 +1105,11 @@ async function doSearchInvoices (req) {
     }
 
     let sDestination = "KIT_Datalake";
-    let oDestination = await cloudSDK.getDestination(sDestination);
-    let oRequestConfig = await cloudSDK.buildHttpRequest(oDestination);
+    let oDestination = await con.getDestination({ destinationName: sDestination });
+    let oRequestConfig = await httpClient.buildHttpRequest(oDestination);
 
     //Query filter (working around axios param serializing issue)
-    oData.sSelect =  oData.sSelect || "$select=InvoiceId,Description,InvoiceDate_day,POId,Supplier_SupplierId,Commodity_CommodityId,ReconciliationStatus";
+    oData.sSelect =  oData.sSelect || "$select=InvoiceId,Description,InvoiceDate_Day,POId,Supplier_SupplierId,Commodity_CommodityId,ReconciliationStatus";
     oData.sTop = oData.sTop || "$top=10";
 
     // sFilter does not include the filter for Realm and User - this would need to be added
@@ -1119,7 +1119,7 @@ async function doSearchInvoices (req) {
     }
     let sFilterOnRealm = "Realm eq '" + oData.sRealm + "'";
     let sFilter = oData.sFilter ? oData.sFilter + sFilterOnUser + " and " + sFilterOnRealm : "$filter=" + sFilterOnRealm + sFilterOnUser;
-    oData.sOrderBy = oData.sOrderBy || "$orderby=InvoiceDate_day desc";
+    oData.sOrderBy = oData.sOrderBy || "$orderby=InvoiceDate_Day desc";
 
     oRequestConfig.url = "InvoiceLineItems?" + oData.sSelect + "&" + sFilter + "&" + oData.sExpand + "&" + oData.sOrderBy + "&" + oData.sTop;
     oRequestConfig.method = "get";

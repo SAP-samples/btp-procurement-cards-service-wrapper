@@ -29,8 +29,8 @@ modules:
    parameters:
      buildpack: nodejs_buildpack
      instances: 1
-     memory: 2G
-     disk-quota: 2G
+     memory: 1G
+     disk-quota: 1G
    provides:
     - name: work-zone-cards-data-srv-api      # required by consumers of CAP services (e.g. approuter)
       properties:

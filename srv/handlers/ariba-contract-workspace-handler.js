@@ -1,9 +1,10 @@
 "use strict";
 
 const cds = require("@sap/cds");
-const logger = require("../util/logger");
-const cloudSDK = require("@sap-cloud-sdk/core");
-const axios = require('axios');
+const logger = cds.log('logger');
+const con = require("@sap-cloud-sdk/connectivity");
+const httpClient = require("@sap-cloud-sdk/http-client");
+const { default: axios } = require("axios");
 const envtype = process.env.TYPE;
 
 async function doCreateContractWorkspace (req) {
@@ -37,8 +38,8 @@ async function doCreateContractWorkspace (req) {
 
     // 3. Get Request Config & Enrich
     let sDestination = "Ariba_Contract-Workspace_" + oData.sRealm;
-    let oDestination = await cloudSDK.getDestination(sDestination);
-    let oRequestConfig = await cloudSDK.buildHttpRequest(oDestination);
+    let oDestination = await con.getDestination({ destinationName: sDestination });
+    let oRequestConfig = await httpClient.buildHttpRequest(oDestination);
 
     if (!oRequestConfig) {
         req.reject(404, "Error - no request config found for destination");
@@ -101,8 +102,8 @@ async function doGetMyRecentContractWorkspaces (req) {
     }
 
     let sDestination = `Ariba_Contract-Workspace_${oData.sRealm}`;
-    let oDestination = await cloudSDK.getDestination(sDestination);
-    let oRequestConfig = await cloudSDK.buildHttpRequest(oDestination);
+    let oDestination = await con.getDestination({ destinationName: sDestination });
+    let oRequestConfig = await httpClient.buildHttpRequest(oDestination);
 
     //Query filter (working around axios param serializing issue)
     let sFilter = oData.sFilter ? "?" + oData.sFilter : "";
